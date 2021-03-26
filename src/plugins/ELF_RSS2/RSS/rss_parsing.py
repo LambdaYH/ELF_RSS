@@ -101,7 +101,7 @@ async def start(rss: rss_class.rss) -> None:
             write_item(rss=rss, new_rss=new_rss, new_item=item)
             continue
 
-        item_msg = f"{new_rss.feed.title}\' Feed\n====================\n"
+        item_msg = f"{new_rss.feed.title}\'s Feed\n====================\n"
         # 处理标题
         if not rss.only_title:
             # 先判断与正文相识度，避免标题正文一样，或者是标题为正文前N字等情况
