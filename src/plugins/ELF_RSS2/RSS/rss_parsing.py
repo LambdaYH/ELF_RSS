@@ -101,7 +101,7 @@ async def start(rss: rss_class.rss) -> None:
             write_item(rss=rss, new_rss=new_rss, new_item=item)
             continue
 
-        item_msg = '【' + new_rss.feed.title + '】更新了!\n----------------------\n'
+        item_msg = f"{new_rss.feed.title}\' Feed\n====================\n"
         # 处理标题
         if not rss.only_title:
             # 先判断与正文相识度，避免标题正文一样，或者是标题为正文前N字等情况
@@ -360,10 +360,6 @@ async def dowimg(url: str, img_proxy: bool) -> str:
 
                 if config.islinux:
                     imgs_name = img_path + filename
-                    if len(imgs_name) > 0:
-                        # imgs_name = os.getcwd() + re.sub(r'\./|\\', r'/', imgs_name)
-                        imgs_name = re.sub(r'\./|\\', r'/', imgs_name)
-                        imgs_name = imgs_name[1:]
                     return imgs_name
                 else:
                     imgs_name = img_path + filename
