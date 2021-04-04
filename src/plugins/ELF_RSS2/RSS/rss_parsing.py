@@ -392,11 +392,12 @@ async def handle_img(html: str, img_proxy: bool) -> str:
     # 处理图片
     doc_img = html('img')
     for img in doc_img.items():
-        img_path = await dowimg(img.attr("src"), img_proxy)
-        if img_path != None or len(img_path) > 0:
-            img_str += '[CQ:image,file=base64://' + await get_pic_base64(str(img_path)) + ']'
-        else:
-            img_str += '\n图片走丢啦: {} \n'.format(img.attr("src"))
+        if img.attr("src"):
+            img_path = await dowimg(img.attr("src"), img_proxy)
+            if img_path != None or len(img_path) > 0:
+                img_str += '[CQ:image,file=base64://' + await get_pic_base64(str(img_path)) + ']'
+            else:
+                img_str += '\n图片走丢啦: {} \n'.format(img.attr("src"))
 
     # 处理视频
     doc_video = html('video')
