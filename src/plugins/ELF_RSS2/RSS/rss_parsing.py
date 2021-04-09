@@ -460,13 +460,14 @@ async def handle_html_tag(html, translation: bool) -> str:
     # <a> 标签处理
     doc_a = html('a')
     for a in doc_a.items():
-        if str(a.text()) != a.attr("href"):
-            rss_str = re.sub(re.escape(str(a)), str(
-                a.text()) + ':' + (a.attr("href")) + '\n', rss_str)
-        else:
-            rss_str = re.sub(re.escape(str(a)),
-                             (a.attr("href")) + '\n', rss_str)
-        rss_str_tl = re.sub(re.escape(str(a)), '', rss_str_tl)
+        if a:
+            if str(a.text()) != a.attr("href"):
+                rss_str = re.sub(re.escape(str(a)), str(
+                    a.text()) + ':' + (a.attr("href")) + '\n', rss_str)
+            else:
+                rss_str = re.sub(re.escape(str(a)),
+                                 (a.attr("href")) + '\n', rss_str)
+            rss_str_tl = re.sub(re.escape(str(a)), '', rss_str_tl)
 
     # 删除未解析成功的 a 标签
     rss_str = re.sub('<a.+?\">|<a>|</a>', '', rss_str)
