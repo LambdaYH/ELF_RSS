@@ -460,7 +460,7 @@ async def handle_html_tag(html, translation: bool) -> str:
     # <a> 标签处理
     doc_a = html('a')
     for a in doc_a.items():
-        if a:
+        if a.text():
             if str(a.text()) != a.attr("href"):
                 rss_str = re.sub(re.escape(str(a)), str(
                     a.text()) + ':' + (a.attr("href")) + '\n', rss_str)
