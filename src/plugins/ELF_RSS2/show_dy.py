@@ -39,7 +39,7 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
                 return
             rss.group_id = [str(group_id), '*']
             rss.user_id = ['*']
-        elif user_id and user_id not in bot.config.superusers:
+        elif user_id and not await _superuser(bot, event):
             rss.group_id = ['*']
             rss.user_id = [str(user_id), '*']
         await RssShow.send(rss.toString())
@@ -57,7 +57,7 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
             if group_id:
                 rss_list[0].group_id = [str(group_id), '*']
                 rss_list[0].user_id = ['*']
-            elif user_id and user_id not in bot.config.superusers:
+            elif user_id and not await _superuser(bot, event):
                 rss_list[0].group_id = ['*']
                 rss_list[0].user_id = [str(user_id), '*']
             await RssShow.send(rss_list[0].toString())
