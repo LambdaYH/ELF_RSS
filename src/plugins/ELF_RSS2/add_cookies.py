@@ -7,7 +7,7 @@ from .RSS import my_trigger as TR
 from .RSS import rss_class
 
 Addcookies = on_command('addcookies', aliases={'添加cookies'}, rule=to_me(
-), priority=5, permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER)
+), priority=5, permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER | permission.PRIVATE_FRIEND)
 
 
 @Addcookies.handle()

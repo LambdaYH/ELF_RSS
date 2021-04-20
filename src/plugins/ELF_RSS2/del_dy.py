@@ -15,7 +15,7 @@ scheduler = require("nonebot_plugin_apscheduler").scheduler
 file_path = str(str(Path.cwd()) + os.sep+'data' + os.sep)
 
 Rssdel = on_command('deldy', aliases={'drop', '删除订阅'}, rule=to_me(
-), priority=5, permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER)
+), priority=5, permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER | permission.PRIVATE_FRIEND)
 
 
 @Rssdel.handle()
@@ -47,6 +47,8 @@ async def handle_RssAdd(bot: Bot, event: Event, state: dict):
         else:
             await Rssdel.send('❌ 当前群组没有订阅： {} ！'.format(rss.name))
     else:
-        rss.delRss(rss)
-        await TR.delJob(rss)
-        await Rssdel.send('👏 订阅 {} 删除成功！'.format(rss.name))
+        if rss.delUser(user = event.user_id):
+            await TR.addJob(rss)
+            await Rssdel.send('👏 当前用户取消订阅 {} 成功！'.format(rss.name))
+        else:
+            await Rssdel.send('❌ 当前用户没有订阅： {} ！'.format(rss.name))

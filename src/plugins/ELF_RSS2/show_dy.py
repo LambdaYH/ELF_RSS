@@ -6,11 +6,10 @@ from nonebot.rule import to_me
 from .RSS import rss_class
 
 RssShow = on_command('show', aliases={'查看订阅'}, rule=to_me(
-), priority=5, permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER)
+), priority=5, permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER | permission.PRIVATE_FRIEND)
 
 # 不带订阅名称默认展示当前群组或账号的订阅
 # 带订阅名称就显示该订阅的
-
 
 @RssShow.handle()
 async def handle_first_receive(bot: Bot, event: Event, state: dict):
@@ -39,6 +38,10 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
                 return
             rss.group_id = [str(group_id), '*']
             rss.user_id = ['*']
+        elif user_id:
+            rss.group_id = ['*']
+            rss.user_id = [str(user_id), '*']
+
         await RssShow.send(rss.toString())
         return
 

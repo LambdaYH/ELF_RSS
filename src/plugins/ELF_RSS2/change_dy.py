@@ -16,7 +16,7 @@ scheduler = require("nonebot_plugin_apscheduler").scheduler
 # file_path = './data/'
 
 RssChange = on_command('change', aliases={'修改订阅', 'moddy'}, rule=to_me(), priority=5,
-                       permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER)
+                       permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER | permission.PRIVATE_FRIEND)
 
 
 @RssChange.handle()

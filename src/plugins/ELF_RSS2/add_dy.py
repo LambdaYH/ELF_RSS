@@ -7,7 +7,7 @@ from .RSS import rss_class
 from .RSS import my_trigger as TR
 
 RssAdd = on_command('add', aliases={'添加订阅', 'sub'}, rule=to_me(
-), priority=5, permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER)
+), priority=5, permission=SUPERUSER.SUPERUSER | permission.GROUP_ADMIN | permission.GROUP_OWNER | permission.PRIVATE_FRIEND)
 
 
 @RssAdd.handle()
