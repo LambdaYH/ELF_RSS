@@ -1,6 +1,5 @@
 from nonebot import on_command
 from nonebot import permission as SUPERUSER
-from nonebot.adapters import MessageSegment
 from nonebot.adapters.cqhttp import Bot, Event, permission
 from nonebot.rule import to_me
 
@@ -27,7 +26,7 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
                     info = ''
                 info += 'Name：{}\nURL：{}\n\n'.format(rss_tmp.name, rss_tmp.url)
                 flag += 1
-            await RssShowAll.send(MessageSegment.image(text2img(info))+'共 {} 条可用订阅'.format(flag))
+            await RssShowAll.send(f"[CQ:image,file={text2img(info)}]"+'共 {} 条可用订阅'.format(flag))
 
     else:
         await RssShowAll.send('当前没有任何订阅！')

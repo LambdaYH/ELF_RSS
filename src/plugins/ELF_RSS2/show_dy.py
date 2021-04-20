@@ -2,6 +2,7 @@ from nonebot import on_command
 from nonebot import permission as SUPERUSER
 from nonebot.adapters.cqhttp import Bot, Event, permission, unescape
 from nonebot.rule import to_me
+from nonebot.permission import _superuser
 
 from .RSS import rss_class
 
@@ -38,10 +39,9 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
                 return
             rss.group_id = [str(group_id), '*']
             rss.user_id = ['*']
-        elif user_id:
+        elif user_id and user_id not in bot.config.superusers:
             rss.group_id = ['*']
             rss.user_id = [str(user_id), '*']
-
         await RssShow.send(rss.toString())
         return
 
@@ -54,6 +54,12 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
         rss_list = rss.findUser(user=str(user_id))
     if rss_list:
         if len(rss_list) == 1:
+            if group_id:
+                rss_list[0].group_id = [str(group_id), '*']
+                rss_list[0].user_id = ['*']
+            elif user_id and user_id not in bot.config.superusers:
+                rss_list[0].group_id = ['*']
+                rss_list[0].user_id = [str(user_id), '*']
             await RssShow.send(rss_list[0].toString())
         else:
             flag = 0
