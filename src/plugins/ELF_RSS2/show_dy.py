@@ -33,15 +33,23 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
             await RssShow.send('❌ 订阅 {} 不存在！'.format(rss_name))
             return
         if group_id:
-            # 隐私考虑，群组下不展示除当前群组外的群号和QQ
             if not str(group_id) in rss.group_id:
-                await RssShow.send('❌ 当前群组未订阅 {} '.format(rss_name))
-                return
-            rss.group_id = [str(group_id), '*']
+                await RssShow.send('❌ 本群未订阅 {}。本订阅详情如下'.format(rss_name))
+                rss.group_id = ['*']
+            else:
+                rss.group_id = [str(group_id), '*']
             rss.user_id = ['*']
         elif user_id and not await _superuser(bot, event):
+            if not str(user_id) in rss.user_id:
+                await RssShow.send('❌ 本用户未订阅 {}。本订阅详情如下'.format(rss_name))
+                rss.user_id = ['*']
+            else:
+                rss.user_id = [str(user_id), '*']
             rss.group_id = ['*']
-            rss.user_id = [str(user_id), '*']
+        elif user_id and await _superuser(bot, event):
+            if not str(user_id) in rss.user_id:
+                await RssShow.send('❌ 本用户未订阅 {}。本订阅详情如下'.format(rss_name))
+                
         await RssShow.send(rss.toString())
         return
 
@@ -52,6 +60,9 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
             return
     else:
         rss_list = rss.findUser(user=str(user_id))
+        if not rss_list:
+            await RssShow.send('❌ 当前用户没有任何订阅！')
+            return
     if rss_list:
         if len(rss_list) == 1:
             if group_id:

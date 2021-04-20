@@ -26,8 +26,8 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
                     info = ''
                 info += 'Name：{}\nURL：{}\n\n'.format(rss_tmp.name, rss_tmp.url)
                 flag += 1
-            await RssShowAll.send(MessageSegment.image(text2img(info))+'共 {} 条可用订阅'.format(flag))
+            await RssShowAll.send(MessageSegment.image(text2img(info))+'共 {} 条可用订阅，发送[show 订阅名]可查看订阅详情'.format(flag))
 
     else:
-        await RssShowAll.send('当前没有任何订阅！')
+        await RssShowAll.send('当前没有任何可用订阅！')
         return
