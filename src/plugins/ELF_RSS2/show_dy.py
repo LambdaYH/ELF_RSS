@@ -20,10 +20,9 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
     else:
         rss_name = None
     user_id = event.user_id
-    try:
+    group_id = None
+    if event.message_type == 'group':
         group_id = event.group_id
-    except:
-        group_id = None
 
     rss = rss_class.rss('', '', '-1', '-1')
 
@@ -50,7 +49,7 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
             if not str(user_id) in rss.user_id:
                 await RssShow.send('❌ 本用户未订阅 {}。本订阅详情如下'.format(rss_name))
                 
-        await RssShow.send(rss.toString())
+        await RssShow.send(str(rss))
         return
 
     if group_id:
@@ -71,7 +70,7 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
             elif user_id and not await _superuser(bot, event):
                 rss_list[0].group_id = ['*']
                 rss_list[0].user_id = [str(user_id), '*']
-            await RssShow.send(rss_list[0].toString())
+            await RssShow.send(str(rss_list[0]))
         else:
             flag = 0
             info = ''
