@@ -11,12 +11,12 @@ from . import rss_class, rss_parsing, util
 
 # 检测某个rss更新 #任务体
 @util.time_out(time=300)  # 20s  任务超时时间
-async def check_update(rss: rss_class.rss):
+async def check_update(rss: rss_class.Rss):
     logger.info('{} 检查更新'.format(rss.name))
     await rss_parsing.start(rss)
 
 
-async def delJob(rss: rss_class.rss):
+async def delete_job(rss: rss_class.Rss):
     scheduler = require("nonebot_plugin_apscheduler").scheduler
     try:
         scheduler.remove_job(rss.name)
@@ -24,28 +24,25 @@ async def delJob(rss: rss_class.rss):
         logger.debug(e)
 
 
-async def addJob(rss: rss_class.rss):
-    await delJob(rss)
+async def add_job(rss: rss_class.Rss):
+    await delete_job(rss)
     # 加入订阅任务队列,加入前判断是否存在群组或用户，二者不能同时为空
     if len(rss.user_id) > 0 or len(rss.group_id) > 0:
         rss_trigger(rss)
 
 
-def rss_trigger(rss: rss_class.rss):
+def rss_trigger(rss: rss_class.Rss):
     if re.search(r'[_*/,-]', rss.time):
         my_trigger_cron(rss)
         return
     scheduler = require("nonebot_plugin_apscheduler").scheduler
     # 制作一个“time分钟/次”触发器
-    trigger = IntervalTrigger(
-        minutes=int(rss.time),
-        jitter=10
-    )
+    trigger = IntervalTrigger(minutes=int(rss.time), jitter=10)
     # 添加任务
     scheduler.add_job(
         func=check_update,  # 要添加任务的函数，不要带参数
         trigger=trigger,  # 触发器
-        args=(rss,),  # 函数的参数列表，注意：只有一个值时，不能省略末尾的逗号
+        args=(rss, ),  # 函数的参数列表，注意：只有一个值时，不能省略末尾的逗号
         id=rss.name,
         # kwargs=None,
         misfire_grace_time=30,  # 允许的误差时间，建议不要省略
@@ -61,7 +58,7 @@ def rss_trigger(rss: rss_class.rss):
 # 参考 https://www.runoob.com/linux/linux-comm-crontab.html
 
 
-def my_trigger_cron(rss: rss_class.rss):
+def my_trigger_cron(rss: rss_class.Rss):
     # 解析参数
     tmp_list = rss.time.split('_')
     times_list = ['*/5', '*', '*', '*', '*']
@@ -70,14 +67,12 @@ def my_trigger_cron(rss: rss_class.rss):
             times_list[i] = tmp_list[i]
     try:
         # 制作一个触发器
-        trigger = CronTrigger(
-            minute=times_list[0],
-            hour=times_list[1],
-            day=times_list[2],
-            month=times_list[3],
-            day_of_week=times_list[4],
-            timezone='Asia/Shanghai'
-        )
+        trigger = CronTrigger(minute=times_list[0],
+                              hour=times_list[1],
+                              day=times_list[2],
+                              month=times_list[3],
+                              day_of_week=times_list[4],
+                              timezone='Asia/Shanghai')
     except Exception as e:
         logger.error('创建定时器错误！cron:{} E：{}'.format(times_list, e))
         return
@@ -87,7 +82,7 @@ def my_trigger_cron(rss: rss_class.rss):
     scheduler.add_job(
         func=check_update,  # 要添加任务的函数，不要带参数
         trigger=trigger,  # 触发器
-        args=(rss,),  # 函数的参数列表，注意：只有一个值时，不能省略末尾的逗号
+        args=(rss, ),  # 函数的参数列表，注意：只有一个值时，不能省略末尾的逗号
         id=rss.name,
         misfire_grace_time=30,  # 允许的误差时间，建议不要省略
         max_instances=1,  # 最大并发
