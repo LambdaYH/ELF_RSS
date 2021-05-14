@@ -51,7 +51,7 @@ async def handle_rss_delete(bot: Bot, event: Event, state: dict):
             await RSS_DELETE.send('❌ 当前群组没有订阅： {} ！'.format(rss.name))
     else:
         if rss.delete_user(user = event.user_id):
-            await tr.addJob(rss)
+            await tr.add_job(rss)
             await RSS_DELETE.send('👏 当前用户取消订阅 {} 成功！'.format(rss.name))
         else:
             await RSS_DELETE.send('❌ 当前用户没有订阅： {} ！'.format(rss.name))
