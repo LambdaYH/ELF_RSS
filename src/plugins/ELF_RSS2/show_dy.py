@@ -6,12 +6,16 @@ from nonebot.permission import _superuser
 
 from .RSS import rss_class
 
-RSS_SHOW = on_command('show',
-                      aliases={'查看订阅'},
-                      rule=to_me(),
-                      priority=5,
-                      permission=su.SUPERUSER | permission.GROUP_ADMIN
-                      | permission.GROUP_OWNER | permission.PRIVATE_FRIEND)
+RSS_SHOW = on_command(
+    "show",
+    aliases={"查看订阅"},
+    rule=to_me(),
+    priority=5,
+    permission=su.SUPERUSER
+    | permission.GROUP_ADMIN
+    | permission.GROUP_OWNER
+    | permission.PRIVATE_FRIEND,
+)
 
 
 # 不带订阅名称默认展示当前群组或账号的订阅，带订阅名称就显示该订阅的
@@ -36,22 +40,22 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
             return
         if group_id:
             if not str(group_id) in rss.group_id:
-                await RSS_SHOW.send('❌ 本群未订阅 {}。本订阅详情如下'.format(rss_name))
-                rss.group_id = ['*']
+                await RSS_SHOW.send("❌ 本群未订阅 {}。本订阅详情如下".format(rss_name))
+                rss.group_id = ["*"]
             else:
-                rss.group_id = [str(group_id), '*']
-            rss.user_id = ['*']
+                rss.group_id = [str(group_id), "*"]
+            rss.user_id = ["*"]
         elif user_id and not await _superuser(bot, event):
             if not str(user_id) in rss.user_id:
-                await RSS_SHOW.send('❌ 本用户未订阅 {}。本订阅详情如下'.format(rss_name))
-                rss.user_id = ['*']
+                await RSS_SHOW.send("❌ 本用户未订阅 {}。本订阅详情如下".format(rss_name))
+                rss.user_id = ["*"]
             else:
-                rss.user_id = [str(user_id), '*']
-            rss.group_id = ['*']
+                rss.user_id = [str(user_id), "*"]
+            rss.group_id = ["*"]
         elif user_id and await _superuser(bot, event):
             if not str(user_id) in rss.user_id:
-                await RSS_SHOW.send('❌ 本用户未订阅 {}。本订阅详情如下'.format(rss_name))
-                
+                await RSS_SHOW.send("❌ 本用户未订阅 {}。本订阅详情如下".format(rss_name))
+
         await RSS_SHOW.send(str(rss))
         return
 
@@ -63,16 +67,16 @@ async def handle_first_receive(bot: Bot, event: Event, state: dict):
     else:
         rss_list = rss.find_user(user=str(user_id))
         if not rss_list:
-            await RSS_SHOW.send('❌ 当前用户没有任何订阅！')
+            await RSS_SHOW.send("❌ 当前用户没有任何订阅！")
             return
     if rss_list:
         if len(rss_list) == 1:
             if group_id:
-                rss_list[0].group_id = [str(group_id), '*']
-                rss_list[0].user_id = ['*']
+                rss_list[0].group_id = [str(group_id), "*"]
+                rss_list[0].user_id = ["*"]
             elif user_id and not await _superuser(bot, event):
-                rss_list[0].group_id = ['*']
-                rss_list[0].user_id = [str(user_id), '*']
+                rss_list[0].group_id = ["*"]
+                rss_list[0].user_id = [str(user_id), "*"]
             await RSS_SHOW.send(str(rss_list[0]))
         else:
             flag = 0

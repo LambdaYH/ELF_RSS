@@ -6,12 +6,16 @@ from nonebot.rule import to_me
 from .RSS import rss_class
 from .util import text2img
 
-RSS_SHOW_ALL = on_command('showall',
-                          aliases={'selectall', '所有订阅'},
-                          rule=to_me(),
-                          priority=5,
-                          permission=su.SUPERUSER
-                          | permission.GROUP_ADMIN | permission.GROUP_OWNER | permission.PRIVATE_FRIEND)
+RSS_SHOW_ALL = on_command(
+    "showall",
+    aliases={"selectall", "所有订阅"},
+    rule=to_me(),
+    priority=5,
+    permission=su.SUPERUSER
+    | permission.GROUP_ADMIN
+    | permission.GROUP_OWNER
+    | permission.PRIVATE_FRIEND,
+)
 
 
 @RSS_SHOW_ALL.handle()

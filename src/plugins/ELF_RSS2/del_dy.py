@@ -14,12 +14,16 @@ SCHEDULER = require("nonebot_plugin_apscheduler").scheduler
 # 存储目录
 FILE_PATH = str(str(Path.cwd()) + os.sep + "data" + os.sep)
 
-RSS_DELETE = on_command('deldy',
-                        aliases={'drop', '删除订阅'},
-                        rule=to_me(),
-                        priority=5,
-                        permission=su.SUPERUSER | permission.GROUP_ADMIN
-                        | permission.GROUP_OWNER | permission.PRIVATE_FRIEND)
+RSS_DELETE = on_command(
+    "deldy",
+    aliases={"drop", "删除订阅"},
+    rule=to_me(),
+    priority=5,
+    permission=su.SUPERUSER
+    | permission.GROUP_ADMIN
+    | permission.GROUP_OWNER
+    | permission.PRIVATE_FRIEND,
+)
 
 
 @RSS_DELETE.handle()
@@ -54,8 +58,8 @@ async def handle_rss_delete(bot: Bot, event: Event, state: dict):
         else:
             await RSS_DELETE.send(f"❌ 当前群组没有订阅： {rss.name} ！")
     else:
-        if rss.delete_user(user = event.user_id):
+        if rss.delete_user(user=event.user_id):
             await tr.add_job(rss)
-            await RSS_DELETE.send('👏 当前用户取消订阅 {} 成功！'.format(rss.name))
+            await RSS_DELETE.send("👏 当前用户取消订阅 {} 成功！".format(rss.name))
         else:
-            await RSS_DELETE.send('❌ 当前用户没有订阅： {} ！'.format(rss.name))
+            await RSS_DELETE.send("❌ 当前用户没有订阅： {} ！".format(rss.name))

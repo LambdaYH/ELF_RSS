@@ -4,6 +4,7 @@ from PIL import Image
 import base64
 from io import BytesIO
 
+
 def text2img(text):
     font = ImageFont.truetype(
         os.path.join(

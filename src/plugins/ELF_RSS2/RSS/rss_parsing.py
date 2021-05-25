@@ -130,7 +130,7 @@ async def start(rss: rss_class.Rss) -> None:
             write_item(rss=rss, new_rss=new_rss, new_item=item)
             continue
 
-        item_msg = f"{new_rss.get('feed').get('title')}\'s Feed\n====================\n"
+        item_msg = f"{new_rss.get('feed').get('title')}'s Feed\n====================\n"
         # 处理标题
         title = item["title"]
         if not config.blockquote:
