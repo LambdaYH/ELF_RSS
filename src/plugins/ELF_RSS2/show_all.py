@@ -16,21 +16,21 @@ RSS_SHOW_ALL = on_command('showall',
 
 @RSS_SHOW_ALL.handle()
 async def handle_first_receive(bot: Bot, event: Event, state: dict):
-    rss = rss_class.Rss('', '', '-1', '-1')
+    rss = rss_class.Rss("", "", "-1", "-1")
     rss_list = rss.read_rss()
     if rss_list:
         if len(rss_list) == 1:
             await RSS_SHOW_ALL.send(str(rss_list[0]))
         else:
             flag = 0
-            info = ''
+            info = ""
             for rss_tmp in rss_list:
                 if flag % 5 == 0 and flag != 0:
                     await RSS_SHOW_ALL.send(str(info[:-2]))
-                    info = ''
-                info += 'Name：{}\nURL：{}\n\n'.format(rss_tmp.name, rss_tmp.url)
+                    info = ""
+                info += f"Name：{rss_tmp.name}\nURL：{rss_tmp.url}\n\n"
                 flag += 1
-            await RSS_SHOW_ALL.send(info+'共 {} 条可用订阅，发送[show 订阅名]可查看订阅详情'.format(flag))
+            await RSS_SHOW_ALL.send(f"{info}共 {flag} 条可用订阅，发送[show 订阅名]可查看订阅详情")
 
     else:
-        await RSS_SHOW_ALL.send('当前没有任何订阅！')
+        await RSS_SHOW_ALL.send("当前没有任何订阅！")
