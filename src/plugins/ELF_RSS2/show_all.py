@@ -4,7 +4,6 @@ from nonebot.adapters.cqhttp import Bot, Event, GroupMessageEvent, permission
 from nonebot.rule import to_me
 
 from .RSS import rss_class
-from .util import text2img
 
 RSS_SHOW_ALL = on_command(
     "showall",
