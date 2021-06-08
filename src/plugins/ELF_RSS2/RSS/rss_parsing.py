@@ -792,6 +792,8 @@ def dict_hash(dictionary: Dict[str, Any]) -> str:
     dictionary_temp.pop("summary")
     if dictionary.get("summary_detail"):
         dictionary_temp.pop("summary_detail")
+    if dictionary.get("hash"):
+        dictionary_temp.pop("hash")
     d_hash = hashlib.md5()
     encoded = json.dumps(dictionary_temp, sort_keys=True).encode()
     d_hash.update(encoded)
