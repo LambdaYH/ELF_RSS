@@ -792,8 +792,11 @@ def dict_hash(dictionary: Dict[str, Any]) -> str:
     dictionary_temp.pop("summary")
     if dictionary.get("summary_detail"):
         dictionary_temp.pop("summary_detail")
-    if dictionary.get("hash"):
-        dictionary_temp.pop("hash")
+    # 某些情况下，每次其他的文章更新后rss会重新生成，例如hexo
+    if dictionary.get("updated"):
+        dictionary_temp.pop("updated")
+    if dictionary.get("updated_parsed"):
+        dictionary_temp.pop("updated_parsed")
     d_hash = hashlib.md5()
     encoded = json.dumps(dictionary_temp, sort_keys=True).encode()
     d_hash.update(encoded)
