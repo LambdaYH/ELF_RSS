@@ -668,8 +668,7 @@ async def handle_html_tag(html) -> str:
         "size",
         "table",
         "url",
-        "del"
-        "b",
+        "del" "b",
         "u",
         "tr",
         "td",
@@ -772,7 +771,13 @@ async def handle_translation(content: str) -> str:
 # 将 dict 对象转换为 json 字符串后，计算哈希值，供后续比较
 def dict_hash(dictionary: Dict[str, Any]) -> str:
     dictionary_temp = dictionary.copy()
-    for entry in ["published_parsed", "summary", "summary_detail", "updated", "updated_parsed"]:
+    for entry in [
+        "published_parsed",
+        "summary",
+        "summary_detail",
+        "updated",
+        "updated_parsed",
+    ]:
         if dictionary.get(entry):
             dictionary_temp.pop(entry)
     d_hash = hashlib.md5()
