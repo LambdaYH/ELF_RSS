@@ -784,6 +784,7 @@ async def handle_translation(content: str) -> str:
 
 # 将 dict 对象转换为 json 字符串后，计算哈希值，供后续比较
 def dict_hash(dictionary: Dict[str, Any]) -> str:
+    logger.warning(dictionary)
     dictionary_temp = dictionary.copy()
     # 避免部分缺失 published_parsed 的消息导致检查更新出问题，进行过滤
     if dictionary.get("published_parsed"):
