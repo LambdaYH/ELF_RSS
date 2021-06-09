@@ -779,7 +779,7 @@ def dict_hash(dictionary: Dict[str, Any]) -> str:
         "updated",
         "updated_parsed",
     ]:
-        if dictionary.get(entry):
+        if dictionary_temp.get(entry):
             dictionary_temp.pop(entry)
     d_hash = hashlib.md5()
     encoded = json.dumps(dictionary_temp, sort_keys=True).encode()
