@@ -146,7 +146,7 @@ async def start(rss: rss_class.Rss) -> None:
             write_item(rss=rss, new_rss=new_rss, new_item=item)
             continue
 
-        item_msg = f"{new_rss.get('feed').get('title')}'s Feed\n====================\n"
+        item_msg = f"【{new_rss.get('feed').get('title')}】更新了!\n----------------------\n"
         # 处理标题
         title = item["title"]
         if not config.blockquote:
@@ -634,8 +634,7 @@ async def handle_img(html, img_proxy: bool, img_num: int) -> str:
         doc_img = doc_img[:img_num]
     for img in doc_img:
         url = img.attr("src")
-        if url:
-            img_str += await handle_img_combo(url, img_proxy)
+        img_str += await handle_img_combo(url, img_proxy)
 
     # 处理视频
     doc_video = html("video")
@@ -655,7 +654,7 @@ async def handle_img(html, img_proxy: bool, img_num: int) -> str:
 
 # HTML标签等处理
 async def handle_html_tag(html) -> str:
-    rss_str = html_unescape(str(html))
+    rss_str = str(html)
 
     # issue 36 处理 bbcode
     rss_str = re.sub(
@@ -669,6 +668,7 @@ async def handle_html_tag(html) -> str:
         "size",
         "table",
         "url",
+        "del"
         "b",
         "u",
         "tr",
@@ -688,7 +688,7 @@ async def handle_html_tag(html) -> str:
     if bbcode_search and re.search(rf"\[{bbcode_search.group(1)}", rss_str):
         parser = bbcode.Parser()
         parser.escape_html = False
-        rss_str = parser.format(rss_str)
+        rss_str = parser.format(rss_str).replace("&lt;/p&gt;", "")
 
     new_html = Pq(rss_str)
     # 有序/无序列表 标签处理
@@ -717,34 +717,21 @@ async def handle_html_tag(html) -> str:
             rss_str = rss_str.replace(a_str, f" {a.attr('href')}\n")
 
     # 处理一些 HTML 标签
-    html_tags = [
-        "b",
-        "i",
-        "p",
-        "code",
-        "del",
-        "div",
-        "dd",
-        "dl",
-        "dt",
-        "font",
-        "iframe",
-        "pre",
-        "span",
-        "strong",
-        "sub",
-        "table",
-        "td",
-        "th",
-        "tr",
-    ]
-    # 直接去掉标签，留下内部文本信息
-    for i in html_tags:
-        rss_str = re.sub(rf'<{i} .+?"/?>', "", rss_str)
-        rss_str = re.sub(rf"</?{i}>", "", rss_str)
-
     rss_str = re.sub('<br .+?"/>|<(br|hr) ?/?>', "\n", rss_str)
+    rss_str = re.sub('<span .+?">|</?span>', "", rss_str)
+    rss_str = re.sub('<pre .+?">|</?pre>', "", rss_str)
+    rss_str = re.sub('<[pbi] .+?">|</?[pbi]>', "", rss_str)
+    rss_str = re.sub('<div .+?"/?>|</?div>', "", rss_str)
+    rss_str = re.sub('<iframe .+?"/>', "", rss_str)
+    rss_str = re.sub("</?(code|strong)>", "", rss_str)
+    rss_str = re.sub('<font .+?">|</font>', "", rss_str)
+    rss_str = re.sub("</?(table|tr|th|td)>", "", rss_str)
     rss_str = re.sub(r"</?h\d>", "\n", rss_str)
+
+    # 解决 issue #3
+    rss_str = re.sub('<dd .+?">|</?dd>', "", rss_str)
+    rss_str = re.sub('<dl .+?">|</?dl>', "", rss_str)
+    rss_str = re.sub('<dt .+?">|</?dt>', "", rss_str)
 
     # 删除图片、视频标签
     rss_str = re.sub(r'<video .+?"?/>|</video>|<img.+?>', "", rss_str)
@@ -784,28 +771,14 @@ async def handle_translation(content: str) -> str:
 
 # 将 dict 对象转换为 json 字符串后，计算哈希值，供后续比较
 def dict_hash(dictionary: Dict[str, Any]) -> str:
-    try:
-        dictionary_temp = dictionary.copy()
-        # 避免部分缺失 published_parsed 的消息导致检查更新出问题，进行过滤
-        if dictionary.get("published_parsed"):
-            dictionary_temp.pop("published_parsed")
-        # 某些情况下，如微博带视频的消息，正文可能不一样，先过滤
-        dictionary_temp.pop("summary")
-        if dictionary.get("summary_detail"):
-            dictionary_temp.pop("summary_detail")
-        # 某些情况下，每次其他的文章更新后rss会重新生成，例如hexo
-        if dictionary.get("updated"):
-            dictionary_temp.pop("updated")
-        if dictionary.get("updated_parsed"):
-            dictionary_temp.pop("updated_parsed")
-        d_hash = hashlib.md5()
-        encoded = json.dumps(dictionary_temp, sort_keys=True).encode()
-        d_hash.update(encoded)
-        return d_hash.hexdigest()
-    except Exception as e:
-        logger.warning(dictionary)
-        logger.warning(dictionary_temp)
-        logger.warning(e)
+    dictionary_temp = dictionary.copy()
+    for entry in ["published_parsed", "summary", "summary_detail", "updated", "updated_parsed"]:
+        if dictionary.get(entry):
+            dictionary_temp.pop(entry)
+    d_hash = hashlib.md5()
+    encoded = json.dumps(dictionary_temp, sort_keys=True).encode()
+    d_hash.update(encoded)
+    return d_hash.hexdigest()
 
 
 # 检查更新
@@ -864,7 +837,8 @@ def write_rss(name: str, new_rss: dict, new_item: list = None):
         dump_f.write(json.dumps(old, sort_keys=True, indent=4, ensure_ascii=False))
 
 
-# 发送消息
+# 发送消息,失败重试
+@retry(stop=(stop_after_attempt(5) | stop_after_delay(30)))
 async def send_msg(rss: rss_class.Rss, msg: str, item: dict) -> bool:
     (bot,) = nonebot.get_bots().values()
     try:
