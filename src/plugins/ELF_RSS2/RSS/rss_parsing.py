@@ -784,24 +784,28 @@ async def handle_translation(content: str) -> str:
 
 # 将 dict 对象转换为 json 字符串后，计算哈希值，供后续比较
 def dict_hash(dictionary: Dict[str, Any]) -> str:
-    logger.warning(dictionary)
-    dictionary_temp = dictionary.copy()
-    # 避免部分缺失 published_parsed 的消息导致检查更新出问题，进行过滤
-    if dictionary.get("published_parsed"):
-        dictionary_temp.pop("published_parsed")
-    # 某些情况下，如微博带视频的消息，正文可能不一样，先过滤
-    dictionary_temp.pop("summary")
-    if dictionary.get("summary_detail"):
-        dictionary_temp.pop("summary_detail")
-    # 某些情况下，每次其他的文章更新后rss会重新生成，例如hexo
-    if dictionary.get("updated"):
-        dictionary_temp.pop("updated")
-    if dictionary.get("updated_parsed"):
-        dictionary_temp.pop("updated_parsed")
-    d_hash = hashlib.md5()
-    encoded = json.dumps(dictionary_temp, sort_keys=True).encode()
-    d_hash.update(encoded)
-    return d_hash.hexdigest()
+    try:
+        dictionary_temp = dictionary.copy()
+        # 避免部分缺失 published_parsed 的消息导致检查更新出问题，进行过滤
+        if dictionary.get("published_parsed"):
+            dictionary_temp.pop("published_parsed")
+        # 某些情况下，如微博带视频的消息，正文可能不一样，先过滤
+        dictionary_temp.pop("summary")
+        if dictionary.get("summary_detail"):
+            dictionary_temp.pop("summary_detail")
+        # 某些情况下，每次其他的文章更新后rss会重新生成，例如hexo
+        if dictionary.get("updated"):
+            dictionary_temp.pop("updated")
+        if dictionary.get("updated_parsed"):
+            dictionary_temp.pop("updated_parsed")
+        d_hash = hashlib.md5()
+        encoded = json.dumps(dictionary_temp, sort_keys=True).encode()
+        d_hash.update(encoded)
+        return d_hash.hexdigest()
+    except Exception as e:
+        logger.warning(dictionary)
+        logger.warning(dictionary_temp)
+        logger.warning(e)
 
 
 # 检查更新
