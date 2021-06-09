@@ -159,6 +159,13 @@ class Rss:
             return
         self.user_id.append(str(user))
         self.write_rss()
+        
+    def delete_user(self, user: str) -> bool:
+        if not str(user) in self.user_id:
+            return False
+        self.user_id.remove(str(user))
+        self.write_rss()
+        return True
 
     # 添加订阅 群组
     def add_group(self, group: str):
