@@ -771,16 +771,10 @@ async def handle_translation(content: str) -> str:
 
 # 将 dict 对象转换为 json 字符串后，计算哈希值，供后续比较
 def dict_hash(dictionary: Dict[str, Any]) -> str:
-    dictionary_temp = dictionary.copy()
-    for entry in [
-        "published_parsed",
-        "summary",
-        "summary_detail",
-        "updated",
-        "updated_parsed",
-    ]:
-        if dictionary_temp.get(entry):
-            dictionary_temp.pop(entry)
+    dictionary_temp = {}
+    for entry in ["id", "link", "published"]:
+        if dictionary.get(entry):
+            dictionary_temp[entry] = dictionary[entry]
     d_hash = hashlib.md5()
     encoded = json.dumps(dictionary_temp, sort_keys=True).encode()
     d_hash.update(encoded)
