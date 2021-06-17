@@ -690,20 +690,6 @@ async def handle_html_tag(html) -> str:
         parser.escape_html = False
         rss_str = parser.format(rss_str).replace("&lt;/p&gt;", "")
 
-    new_html = Pq(rss_str)
-    # 有序/无序列表 标签处理
-    for ul in new_html("ul").items():
-        for li in ul("li").items():
-            li_str_search = re.search("<li>(.+)</li>", repr(str(li)))
-            rss_str = rss_str.replace(str(li), f"\n- {li_str_search.group(1)}").replace(
-                "\\n", "\n"
-            )
-    for ol in new_html("ol").items():
-        for index, li in enumerate(ol("li").items()):
-            li_str_search = re.search("<li>(.+)</li>", repr(str(li)))
-            rss_str = rss_str.replace(
-                str(li), f"\n{index + 1}. {li_str_search.group(1)}"
-            ).replace("\\n", "\n")
     rss_str = re.sub("</?(ul|ol)>", "", rss_str)
     # 处理没有被 ul / ol 标签包围的 li 标签
     rss_str = rss_str.replace("<li>", "- ").replace("</li>", "")
@@ -727,6 +713,21 @@ async def handle_html_tag(html) -> str:
 
     # 删除图片、视频标签
     rss_str = re.sub(r'<video .+?"?/>|</video>|<img.+?>', "", rss_str)
+    
+    new_html = Pq(rss_str)
+    # 有序/无序列表 标签处理
+    for ul in new_html("ul").items():
+        for li in ul("li").items():
+            li_str_search = re.search("<li>(.+)</li>", repr(str(li)))
+            rss_str = rss_str.replace(str(li), f"\n- {li_str_search.group(1)}").replace(
+                "\\n", "\n"
+            )
+    for ol in new_html("ol").items():
+        for index, li in enumerate(ol("li").items()):
+            li_str_search = re.search("<li>(.+)</li>", repr(str(li)))
+            rss_str = rss_str.replace(
+                str(li), f"\n{index + 1}. {li_str_search.group(1)}"
+            ).replace("\\n", "\n")
 
     # <a> 标签处理
     for a in new_html("a").items():
