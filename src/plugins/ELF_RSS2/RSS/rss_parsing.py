@@ -708,14 +708,6 @@ async def handle_html_tag(html) -> str:
     # 处理没有被 ul / ol 标签包围的 li 标签
     rss_str = rss_str.replace("<li>", "- ").replace("</li>", "")
 
-    # <a> 标签处理
-    for a in new_html("a").items():
-        a_str = re.search(r"<a.+?</a>", html_unescape(str(a)))[0]
-        if a.text() and str(a.text()) != a.attr("href"):
-            rss_str = rss_str.replace(a_str, f" {a.text()}: {a.attr('href')}\n")
-        else:
-            rss_str = rss_str.replace(a_str, f" {a.attr('href')}\n")
-
     # 处理一些 HTML 标签
     rss_str = re.sub('<br .+?"/>|<(br|hr) ?/?>', "\n", rss_str)
     rss_str = re.sub('<span .+?">|</?span>', "", rss_str)
@@ -735,6 +727,16 @@ async def handle_html_tag(html) -> str:
 
     # 删除图片、视频标签
     rss_str = re.sub(r'<video .+?"?/>|</video>|<img.+?>', "", rss_str)
+
+    # <a> 标签处理
+    for a in new_html("a").items():
+        a_str = re.search(r"<a.+?</a>", html_unescape(str(a)))[0]
+        if a.attr("href").startswith("https://m.weibo.cn/search?containerid"):
+            rss_str = rss_str.replace(a_str, f" {a.text()}")
+        elif a.text() and str(a.text()) != a.attr("href"):
+            rss_str = rss_str.replace(a_str, f" {a.text()}: {a.attr('href')}\n")
+        else:
+            rss_str = rss_str.replace(a_str, f" {a.attr('href')}\n")
 
     # 去掉多余换行
     while re.search("\n\n", rss_str):
