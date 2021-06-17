@@ -713,7 +713,7 @@ async def handle_html_tag(html) -> str:
 
     # 删除图片、视频标签
     rss_str = re.sub(r'<video .+?"?/>|</video>|<img.+?>', "", rss_str)
-    
+
     new_html = Pq(rss_str)
     # 有序/无序列表 标签处理
     for ul in new_html("ul").items():
