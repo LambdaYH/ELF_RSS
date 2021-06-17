@@ -731,7 +731,7 @@ async def handle_html_tag(html) -> str:
 
     # <a> 标签处理
     for a in new_html("a").items():
-        a_str = re.search(r"<a.+?</a>", html_unescape(str(a)))[0]
+        a_str = re.search(r"<a.+?</a>", html_unescape(a.outer_html()))[0]
         if a.attr("href").startswith("https://m.weibo.cn/search?containerid"):
             rss_str = rss_str.replace(a_str, f" {a.text()}")
         elif a.text() and str(a.text()) != a.attr("href"):
