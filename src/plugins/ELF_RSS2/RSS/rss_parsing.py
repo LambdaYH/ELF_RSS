@@ -150,6 +150,7 @@ async def start(rss: rss_class.Rss) -> None:
         title = item["title"]
         if not config.blockquote:
             title = re.sub(r" - 转发 .*", "", title)
+        title_msg = await handle_title(title=title)
         if not rss.only_title:
             # 先判断与正文相识度，避免标题正文一样，或者是标题为正文前N字等情况
             try:
@@ -161,16 +162,17 @@ async def start(rss: rss_class.Rss) -> None:
                 )
                 # 标题正文相似度
                 if rss.only_pic or similarity.ratio() <= 0.6:
-                    item_msg += await handle_title(title=title)
+                    item_msg += title_msg
                     if rss.translation:
                         item_msg += await handle_translation(content=title)
                 # 处理正文
                 item_msg += await handle_summary(summary=summary, rss=rss)
             except Exception as e:
                 logger.info(f"{rss.name} 没有正文内容！ E: {e}")
-                item_msg += await handle_title(title=title)
+                if title_msg not in item_msg:
+                    item_msg += title_msg
         else:
-            item_msg += await handle_title(title=title)
+            item_msg += title_msg
             if rss.translation:
                 item_msg += await handle_translation(content=title)
 
@@ -273,7 +275,10 @@ async def duplicate_exists(
             content = await download_image(url, rss.img_proxy)
             if not content:
                 continue
-            im = Image.open(BytesIO(content))
+            try:
+                im = Image.open(BytesIO(content))
+            except UnidentifiedImageError:
+                continue
             image_hash = imagehash.average_hash(im)
             # GIF 图片的 image_hash 实际上是第一帧的值，为了避免误伤直接跳过
             if im.format == "GIF":
@@ -309,7 +314,7 @@ def write_item(rss: rss_class.Rss, new_rss: dict, new_item: str):
 async def handle_down_torrent(rss: rss_class, item: dict) -> list:
     if not rss.is_open_upload_group:
         rss.group_id = []
-    if config.is_open_auto_down_torrent and rss.down_torrent:
+    if rss.down_torrent:
         return await down_torrent(rss=rss, item=item, proxy=get_proxy(rss.img_proxy))
 
 
@@ -391,8 +396,6 @@ async def handle_title(title: str) -> str:
 
 # 处理正文，图片放后面
 async def handle_summary(summary: str, rss: rss_class.Rss) -> str:
-    # 去掉换行
-    # summary = re.sub('\n', '', summary)
     # 处理 summary 使其 HTML标签统一，方便处理
     try:
         summary_html = Pq(summary)
@@ -589,10 +592,12 @@ async def download_image_detail(url: str, proxy: bool):
             except httpx.ConnectError as e:
                 logger.error(f"图片[{url}]下载失败,有可能需要开启代理！ \n{e}")
                 return None
-            # 如果图片无法访问到,直接返回
-            if pic.status_code not in STATUS_CODE or len(pic.content) == 0:
+            # 如果 图片无法获取到 / 获取到的不是图片，直接返回
+            if ("image" not in pic.headers["Content-Type"]) or (
+                pic.status_code not in STATUS_CODE
+            ):
                 logger.error(
-                    f"[{url}] pic.status_code: {pic.status_code} pic.size: {len(pic.content)}"
+                    f"[{url}] Content-Type: {pic.headers['Content-Type']} status_code: {pic.status_code}"
                 )
                 return None
             return pic.content
@@ -601,9 +606,21 @@ async def download_image_detail(url: str, proxy: bool):
         raise
 
 
-async def download_image(url: str, proxy: bool = False):
+# 图片地址预处理
+async def handle_img_url(url: str) -> str:
     if re.search(r"^//", url):
         url = url.replace("//", "https://")
+    # 如果是推特图片，重定向为原图
+    if "pbs.twimg.com" in url:
+        url = url.replace("?format=", ".").replace("&name=", ":")
+        url = re.sub(":(thumb|small|medium|large)", "", url)
+        if ":orig" not in url:
+            url += ":orig"
+    return url
+
+
+async def download_image(url: str, proxy: bool = False):
+    url = await handle_img_url(url)
     try:
         return await download_image_detail(url=url, proxy=proxy)
     except Exception as e:
@@ -612,8 +629,7 @@ async def download_image(url: str, proxy: bool = False):
 
 
 async def handle_img_combo(url: str, img_proxy: bool) -> str:
-    if re.search(r"^//", url):
-        url = url.replace("//", "https://")
+    url = await handle_img_url(url)
     content = await download_image(url, img_proxy)
     resize_content = await zip_pic(url, img_proxy, content)
     img_base64 = await get_pic_base64(resize_content)
@@ -737,6 +753,40 @@ async def handle_html_tag(html) -> str:
             rss_str = rss_str.replace(a_str, f" {a.text()}: {a.attr('href')}\n")
         else:
             rss_str = rss_str.replace(a_str, f" {a.attr('href')}\n")
+
+    # 处理一些 HTML 标签
+    html_tags = [
+        "b",
+        "i",
+        "p",
+        "code",
+        "del",
+        "div",
+        "dd",
+        "dl",
+        "dt",
+        "font",
+        "iframe",
+        "pre",
+        "small",
+        "span",
+        "strong",
+        "sub",
+        "table",
+        "td",
+        "th",
+        "tr",
+    ]
+    # 直接去掉标签，留下内部文本信息
+    for i in html_tags:
+        rss_str = re.sub(rf'<{i} .+?"/?>', "", rss_str)
+        rss_str = re.sub(rf"</?{i}>", "", rss_str)
+
+    rss_str = re.sub('<br .+?"/>|<(br|hr) ?/?>', "\n", rss_str)
+    rss_str = re.sub(r"</?h\d>", "\n", rss_str)
+
+    # 删除图片、视频标签
+    rss_str = re.sub(r'<video .+?"?/>|</video>|<img.+?>', "", rss_str)
 
     # 去掉多余换行
     while re.search("\n\n", rss_str):
