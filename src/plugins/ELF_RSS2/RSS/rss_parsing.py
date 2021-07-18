@@ -192,6 +192,8 @@ async def start(rss: rss_class.Rss) -> None:
                 item_msg = item_msg[:-1]
         except Exception as e:
             logger.error(f"下载种子时出错：{e}")
+        if len(item_msg) >= 3000:
+            item_msg = f"{new_rss.get('feed').get('title')}'s Feed\n====================\n抓取RSS信息异常或正文内容过长，故不予显示"
         # 发送消息并写入文件
         if await send_msg(rss=rss, msg=item_msg, item=item):
             write_item(rss=rss, new_rss=new_rss, new_item=item)
