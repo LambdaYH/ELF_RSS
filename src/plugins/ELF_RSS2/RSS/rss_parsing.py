@@ -855,7 +855,7 @@ async def check_update(new: list, old: list) -> list:
     ]
     result_with_date.sort(key=lambda tup: tup[0])
     result = [i for key, i in result_with_date]
-    return result
+    return result[-5:]
 
 
 # 读取记录
